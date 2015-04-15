@@ -26,10 +26,10 @@ void proc1() {
 	sprintf(segs[0]+1000, "hello, world");
 
 	rvm_about_to_modify(trans, segs[1], 0, 100);
-	sprintf(segs[0], "hello, world");
+	sprintf(segs[1], "hello, world");
      
 	rvm_about_to_modify(trans, segs[1], 1000, 100);
-	sprintf(segs[0]+1000, "hello, world");
+	sprintf(segs[1]+1000, "hello, world");
    
 	rvm_commit_trans(trans);
 
@@ -45,13 +45,13 @@ void proc2() {
 	rvm = rvm_init("rvm_segments");
 
 	segs[0] = (char *) rvm_map(rvm, "testseg", 10000);
-	if(!strcmp(segs[0], "hello, world")) {
+	if(strcmp(segs[0], "hello, world") != 0) {
 		fprintf(stderr, 
 		"A second process did not find changes in segment one.\n");
 		fprintf(stderr, "found %s\n", segs[0]);
     		exit(2);
   	}
-  	if(!strcmp(segs[0]+1000, "hello, world")) {
+  	if(strcmp(segs[0]+1000, "hello, world") != 0) {
     		fprintf(stderr, 
 		"A second process did not find changes in segment one.\n");
 		fprintf(stderr, "found %s\n", segs[0]+1000);
@@ -59,13 +59,13 @@ void proc2() {
   	}
 
 	segs[1] = (char *) rvm_map(rvm, "anotherseg", 10000);
-	if(!strcmp(segs[1], "hello, world")) {
+	if(strcmp(segs[1], "hello, world") != 0) {
 		fprintf(stderr, 
 		"A second process did not find changes in segment two.\n");
 		fprintf(stderr, "found %s\n", segs[1]);
     		exit(4);
   	}
-  	if(!strcmp(segs[1]+1000, "hello, world")) {
+  	if(strcmp(segs[1]+1000, "hello, world") != 0) {
     		fprintf(stderr, 
 		"A second process did not find changes in segment two.\n");
 		fprintf(stderr, "found %s\n", segs[1]+1000);
