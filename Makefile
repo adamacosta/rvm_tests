@@ -1,40 +1,39 @@
 CC = gcc            
 CFLAGS = -g -Wall
 TESTS = tests
+LIBS = seqsrchst.o steque.o rvm.o
 
 # pattern rule for object files
 %.o: %.c
 	$(CC) -c $(CFLAGS) $< -o $@
 
-rvm_test1: seqsrchst.o steque.o rvm.o rvm_test1.o
-	$(CC) -o rvm_test1 seqsrchst.o steque.o rvm.o rvm_test1.o
+tests: rvm_test1 rvm_test2 rvm_test3 rvm_test4 rvm_test5 rvm_test6 rvm_test7
 	rm -f *.o
+	rm -f $(TESTS)/*.o
 
-rvm_test2: seqsrchst.o steque.o rvm.o rvm_test2.o
-	$(CC) -o rvm_test2 seqsrchst.o steque.o rvm.o rvm_test2.o
-	rm -f *.o
+rvm_test1: $(LIBS) $(TESTS)/rvm_test1.o
+	$(CC) -o $(TESTS)/rvm_test1 $(LIBS) $(TESTS)/rvm_test1.o
 
-rvm_test3: seqsrchst.o steque.o rvm.o rvm_test3.o
-	$(CC) -o rvm_test3 seqsrchst.o steque.o rvm.o rvm_test3.o
-	rm -f *.o
+rvm_test2: $(LIBS) $(TESTS)/rvm_test2.o
+	$(CC) -o $(TESTS)/rvm_test2 $(LIBS) $(TESTS)/rvm_test2.o
 
-rvm_test4: seqsrchst.o steque.o rvm.o rvm_test4.o
-	$(CC) -o rvm_test4 seqsrchst.o steque.o rvm.o rvm_test4.o
-	rm -f *.o
+rvm_test3: $(LIBS) $(TESTS)/rvm_test3.o
+	$(CC) -o $(TESTS)/rvm_test3 $(LIBS) $(TESTS)/rvm_test3.o
 
-rvm_test5: seqsrchst.o steque.o rvm.o rvm_test5.o
-	$(CC) -o rvm_test5 seqsrchst.o steque.o rvm.o rvm_test5.o
-	rm -f *.o
+rvm_test4: $(LIBS) $(TESTS)/rvm_test4.o
+	$(CC) -o $(TESTS)/rvm_test4 $(LIBS) $(TESTS)/rvm_test4.o
 
-rvm_test6: seqsrchst.o steque.o rvm.o rvm_test6.o
-	$(CC) -o rvm_test6 seqsrchst.o steque.o rvm.o rvm_test6.o
-	rm -f *.o
+rvm_test5: $(LIBS) $(TESTS)/rvm_test5.o
+	$(CC) -o $(TESTS)/rvm_test5 $(LIBS) $(TESTS)/rvm_test5.o
 
-rvm_test7: seqsrchst.o steque.o rvm.o rvm_test7.o
-	$(CC) -o rvm_test7 seqsrchst.o steque.o rvm.o rvm_test7.o
-	rm -f *.o
+rvm_test6: $(LIBS) $(TESTS)/rvm_test6.o
+	$(CC) -o $(TESTS)/rvm_test6 $(LIBS) $(TESTS)/rvm_test6.o
+
+rvm_test7: $(LIBS) $(TESTS)/rvm_test7.o
+	$(CC) -o $(TESTS)/rvm_test7 $(LIBS) $(TESTS)/rvm_test7.o
 
 clean:
-	rm -f *.o rvm_test1 rvm_test2 rvm_test3 rvm_test4 rvm_test5 \
-		  rvm_test6 rvm_test7
+	rm -f *.o $(TESTS)/rvm_test1 $(TESTS)/rvm_test2 $(TESTS)/rvm_test3 \
+	          $(TESTS)/rvm_test4 $(TESTS)/rvm_test5 $(TESTS)/rvm_test6 \
+	          $(TESTS)/rvm_test7
 	rm -f core

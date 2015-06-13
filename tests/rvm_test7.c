@@ -4,27 +4,38 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-#include "rvm.h"
+#include "../rvm.h"
 
 /* proc1 writes some data, commits it, then exits */
 void proc1() {
 	rvm_t rvm;
-	trans_t trans;
+	trans_t trans1;
+	trans_t trans2;
 	char* segs[1];
 
 	rvm = rvm_init("rvm_segments");
 	rvm_destroy(rvm, "testseg");
 	segs[0] = (char *) rvm_map(rvm, "testseg", 10000);
      
-	trans = rvm_begin_trans(rvm, 1, (void **) segs);
+	trans1 = rvm_begin_trans(rvm, 1, (void **) segs);
      
-	rvm_about_to_modify(trans, segs[0], 0, 100);
+	rvm_about_to_modify(trans1, segs[0], 0, 100);
 	sprintf(segs[0], "hello, world");
      
-	rvm_about_to_modify(trans, segs[0], 1000, 100);
+	rvm_about_to_modify(trans1, segs[0], 1000, 100);
 	sprintf(segs[0]+1000, "hello, world");
 
-	rvm_abort_trans(trans);
+	trans2 = rvm_begin_trans(rvm, 1, (void **) segs);
+
+	rvm_about_to_modify(trans2, segs[0], 0, 100);
+	sprintf(segs[0], "goodbye, cruel world");
+     
+	rvm_about_to_modify(trans2, segs[0], 1000, 100);
+	sprintf(segs[0]+1000, "goodbye, cruel world");
+
+	rvm_commit_trans(trans1);
+   
+	rvm_commit_trans(trans2);
 
 	abort();
 }
@@ -38,17 +49,17 @@ void proc2() {
 	rvm = rvm_init("rvm_segments");
 
 	segs[0] = (char *) rvm_map(rvm, "testseg", 10000);
-	if(!strcmp(segs[0], "hello, world")) {
+	if (strcmp(segs[0], "hello, world")) {
 		fprintf(stderr, 
-		"A second process found aborted changes committed.\n");
+		"A second process did not find what the first had written.\n");
 		fprintf(stderr, "found %s\n", segs[0]);
-    		exit(2);
+    		exit(EXIT_FAILURE);
   	}
-  	if(!strcmp(segs[0]+1000, "hello, world")) {
+  	if (strcmp(segs[0]+1000, "hello, world")) {
     		fprintf(stderr, 
-		"A second process found aborted changes committed.\n");
+		"A second process did not find what the first had written.\n");
 		fprintf(stderr, "found %s\n", segs[0]+1000);
-    		exit(3);
+    		exit(EXIT_FAILURE);
   	}
 }
 

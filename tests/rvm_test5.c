@@ -4,19 +4,19 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-#include "rvm.h"
+#include "../rvm.h"
 
 /* proc1 writes some data, commits it, then exits */
 void proc1() {
 	rvm_t rvm;
 	trans_t trans;
-	char* segs[2];
+	char* segs[1];
 
 	rvm = rvm_init("rvm_segments");
+	rvm_destroy(rvm, "testseg");
 	segs[0] = (char *) rvm_map(rvm, "testseg", 10000);
-	segs[1] = (char *) rvm_map(rvm, "anotherseg", 10000);
      
-	trans = rvm_begin_trans(rvm, 2, (void **) segs);
+	trans = rvm_begin_trans(rvm, 1, (void **) segs);
      
 	rvm_about_to_modify(trans, segs[0], 0, 100);
 	sprintf(segs[0], "hello, world");
@@ -24,13 +24,17 @@ void proc1() {
 	rvm_about_to_modify(trans, segs[0], 1000, 100);
 	sprintf(segs[0]+1000, "hello, world");
 
-	rvm_about_to_modify(trans, segs[1], 0, 100);
-	sprintf(segs[1], "hello, world");
-     
-	rvm_about_to_modify(trans, segs[1], 1000, 100);
-	sprintf(segs[1]+1000, "hello, world");
-   
 	rvm_abort_trans(trans);
+
+	trans = rvm_begin_trans(rvm, 1, (void **) segs);
+     
+	rvm_about_to_modify(trans, segs[0], 0, 100);
+	sprintf(segs[0], "hello, world");
+     
+	rvm_about_to_modify(trans, segs[0], 1000, 100);
+	sprintf(segs[0]+1000, "hello, world");
+   
+	rvm_commit_trans(trans);
 
 	abort();
 }
@@ -38,37 +42,23 @@ void proc1() {
 
 /* proc2 opens the segments and reads from them */
 void proc2() {
-	char* segs[2];
+	char* segs[1];
 	rvm_t rvm;
      
 	rvm = rvm_init("rvm_segments");
 
 	segs[0] = (char *) rvm_map(rvm, "testseg", 10000);
-	if(!strcmp(segs[0], "hello, world")) {
+	if(strcmp(segs[0], "hello, world")) {
 		fprintf(stderr, 
-		"A second process found aborted changes committed.\n");
+		"A second process did not find what the first had written.\n");
 		fprintf(stderr, "found %s\n", segs[0]);
     		exit(2);
   	}
-  	if(!strcmp(segs[0]+1000, "hello, world")) {
+  	if(strcmp(segs[0]+1000, "hello, world")) {
     		fprintf(stderr, 
-		"A second process found aborted changes committed.\n");
+		"A second process did not find what the first had written.\n");
 		fprintf(stderr, "found %s\n", segs[0]+1000);
     		exit(3);
-  	}
-
-	segs[1] = (char *) rvm_map(rvm, "anotherseg", 10000);
-	if(!strcmp(segs[1], "hello, world")) {
-		fprintf(stderr, 
-		"A second process found aborted changes committed.\n");
-		fprintf(stderr, "found %s\n", segs[0]);
-    		exit(4);
-  	}
-  	if(!strcmp(segs[1]+1000, "hello, world")) {
-    		fprintf(stderr, 
-		"A second process found aborted changes committed.\n");
-		fprintf(stderr, "found %s\n", segs[0]+1000);
-    		exit(5);
   	}
 }
 

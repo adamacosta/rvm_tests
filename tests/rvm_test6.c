@@ -4,7 +4,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-#include "rvm.h"
+#include "../rvm.h"
 
 /* proc1 writes some data, commits it, then exits */
 void proc1() {
@@ -24,18 +24,6 @@ void proc1() {
 	rvm_about_to_modify(trans, segs[0], 1000, 100);
 	sprintf(segs[0]+1000, "hello, world");
 
-	rvm_abort_trans(trans);
-
-	trans = rvm_begin_trans(rvm, 1, (void **) segs);
-     
-	rvm_about_to_modify(trans, segs[0], 0, 100);
-	sprintf(segs[0], "hello, world");
-     
-	rvm_about_to_modify(trans, segs[0], 1000, 100);
-	sprintf(segs[0]+1000, "hello, world");
-   
-	rvm_commit_trans(trans);
-
 	abort();
 }
 
@@ -48,15 +36,15 @@ void proc2() {
 	rvm = rvm_init("rvm_segments");
 
 	segs[0] = (char *) rvm_map(rvm, "testseg", 10000);
-	if(strcmp(segs[0], "hello, world")) {
+	if(!strcmp(segs[0], "hello, world")) {
 		fprintf(stderr, 
-		"A second process did not find what the first had written.\n");
+		"A second process found aborted changes committed.\n");
 		fprintf(stderr, "found %s\n", segs[0]);
     		exit(2);
   	}
-  	if(strcmp(segs[0]+1000, "hello, world")) {
+  	if(!strcmp(segs[0]+1000, "hello, world")) {
     		fprintf(stderr, 
-		"A second process did not find what the first had written.\n");
+		"A second process found aborted changes committed.\n");
 		fprintf(stderr, "found %s\n", segs[0]+1000);
     		exit(3);
   	}

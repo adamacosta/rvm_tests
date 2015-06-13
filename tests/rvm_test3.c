@@ -4,7 +4,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <fcntl.h>
-#include "rvm.h"
+#include "../rvm.h"
 
 /* proc1 writes some data, commits it, then exits */
 void proc1() {
@@ -78,11 +78,11 @@ int main(int argc, char **argv) {
 	int pid;
 
 	pid = fork();
- 	if (pid < 0) {
+ 	if(pid < 0) {
 		perror("fork");
 		exit(2);
 	}
-	if (pid == 0) {
+	if(pid == 0) {
 		proc1();
 		exit(EXIT_SUCCESS);
 	}
